@@ -79,16 +79,23 @@ export default async function handler(req, res) {
 
 async function sendTelegramMessage(chatId, text) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) return;
+  if (!token) {
+    console.error('TELEGRAM_BOT_TOKEN is missing!');
+    return;
+  }
 
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
-  await fetch(url, {
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: chatId,
-      text: text,
-      parse_mode: 'Markdown'
+      text: text
     })
   });
+
+  const resJson = await res.json();
+  if (!resJson.ok) {
+    console.error('Telegram sendMessage failed:', resJson);
+  }
 }
