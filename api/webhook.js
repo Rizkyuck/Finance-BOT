@@ -1,0 +1,88 @@
+// webhook.js - Serverless function handler
+import { parseTransaction } from '../lib/aiParser.js';
+import { appendTransaction, getFinancialSummary, buildReplyMessage } from '../lib/sheetsHelper.js';
+
+export default async function handler(req, res) {
+  // 1. Verifikasi Webhook Meta (GET)
+  if (req.method === 'GET') {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+      return res.status(200).send(challenge);
+    }
+    return res.status(403).json({ error: 'Verification failed' });
+  }
+
+  // 2. Menerima Pesan WhatsApp (POST)
+  if (req.method === 'POST') {
+    try {
+      const body = req.body;
+      const entry = body?.entry?.[0];
+      const change = entry?.changes?.[0]?.value;
+      const message = change?.messages?.[0];
+
+      if (!message || message.type !== 'text') {
+        return res.status(200).send('EVENT_RECEIVED');
+      }
+
+      const senderNumber = message.from;
+      const userText = message.text.body;
+
+      // Filter nomor HP pemilik (hanya kamu yang bisa akses)
+      if (process.env.ALLOWED_PHONE && senderNumber !== process.env.ALLOWED_PHONE) {
+        return res.status(200).send('UNAUTHORIZED_USER');
+      }
+
+      // Parsing pesan dengan Gemini AI
+      const parsed = await parseTransaction(userText, process.env.GEMINI_API_KEY);
+      const scriptUrl = process.env.APPS_SCRIPT_URL;
+
+      let replyText = "";
+
+      if (parsed.action === 'QUERY') {
+        const summary = await getFinancialSummary(scriptUrl, parsed.query_period);
+        replyText = buildReplyMessage(parsed, summary);
+      } else {
+        await appendTransaction(scriptUrl, parsed);
+        replyText = buildReplyMessage(parsed);
+      }
+
+      // Kirim balasan ke WhatsApp via Meta Cloud API
+      await sendWhatsAppMessage(senderNumber, replyText);
+
+      return res.status(200).json({ status: 'success' });
+    } catch (err) {
+      console.error('Error handling webhook:', err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
+}
+
+async function sendWhatsAppMessage(to, text) {
+  const phoneId = process.env.WHATSAPP_PHONE_ID;
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  
+  if (!phoneId || !token) {
+    console.log('WA Mock reply to', to, ':\n', text);
+    return;
+  }
+
+  const url = `https://graph.facebook.com/v21.0/${phoneId}/messages`;
+  await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'text',
+      text: { body: text }
+    })
+  });
+}

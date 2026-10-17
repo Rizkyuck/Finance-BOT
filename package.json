@@ -1,0 +1,13 @@
+{
+  "name": "wa-finance-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp Personal Finance Bot with AI categorization and Google Sheets sync",
+  "main": "api/webhook.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node api/webhook.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
