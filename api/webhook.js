@@ -1,6 +1,6 @@
 // webhook.js - Serverless function handler
 import { parseTransaction } from '../lib/aiParser.js';
-import { appendTransaction, getFinancialSummary, buildReplyMessage } from '../lib/sheetsHelper.js';
+import { appendTransaction, getFinancialSummary, buildReplyMessage, deleteLastTransaction } from '../lib/sheetsHelper.js';
 
 export default async function handler(req, res) {
   // 1. Verifikasi Webhook Meta (GET)
@@ -43,6 +43,20 @@ export default async function handler(req, res) {
       if (parsed.action === 'QUERY') {
         const summary = await getFinancialSummary(scriptUrl, parsed.query_period);
         replyText = buildReplyMessage(parsed, summary);
+      } else if (parsed.action === 'UNDO') {
+        const delRes = await deleteLastTransaction(scriptUrl);
+        if (delRes?.deletedRow) {
+          replyText = `🗑️ *Transaksi Terakhir Dibatalkan!*\n` +
+                      `───────────────────────\n` +
+                      `📌 *Data yang dihapus:*\n` +
+                      `• Kategori: ${delRes.deletedRow[2]}\n` +
+                      `• Nominal: Rp ${Number(delRes.deletedRow[3] || 0).toLocaleString('id-ID')}\n` +
+                      `• Akun: ${delRes.deletedRow[4]}\n` +
+                      `• Catatan: "${delRes.deletedRow[6]}"\n` +
+                      `───────────────────────\nSaldo otomatis disesuaikan kembali.`;
+        } else {
+          replyText = `⚠️ Tidak ada transaksi yang bisa dihapus.`;
+        }
       } else {
         await appendTransaction(scriptUrl, parsed);
         replyText = buildReplyMessage(parsed);
