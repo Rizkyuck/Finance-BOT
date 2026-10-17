@@ -19,9 +19,8 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const body = req.body;
-      const entry = body?.entry?.[0];
-      const change = entry?.changes?.[0]?.value;
-      const message = change?.messages?.[0];
+      const value = body?.entry?.[0]?.changes?.[0]?.value || body?.value;
+      const message = value?.messages?.[0];
 
       if (!message || message.type !== 'text') {
         return res.status(200).send('EVENT_RECEIVED');
@@ -30,8 +29,8 @@ export default async function handler(req, res) {
       const senderNumber = message.from;
       const userText = message.text.body;
 
-      // Filter nomor HP pemilik (hanya kamu yang bisa akses)
-      if (process.env.ALLOWED_PHONE && senderNumber !== process.env.ALLOWED_PHONE) {
+      // Filter nomor HP pemilik (izinkan nomor kamu atau pengujian Meta)
+      if (process.env.ALLOWED_PHONE && senderNumber !== process.env.ALLOWED_PHONE && !senderNumber.startsWith('1631555')) {
         return res.status(200).send('UNAUTHORIZED_USER');
       }
 
