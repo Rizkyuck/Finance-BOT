@@ -267,14 +267,30 @@ function setupDashboard() {
   dash.getRange("H4:I15").setBorder(true, true, true, true, true, true, "#ce93d8", SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
 
   // ============================================================
-  // GRAFIK 1: PIE CHART — Pengeluaran per Kategori
+  // SECTION HEADER GRAFIK — row 14
   // ============================================================
-  Utilities.sleep(1000); // tunggu formula di-resolve dulu
+  dash.setRowHeight(13, 15); // spacer kecil
+
+  dash.getRange("A14:I14").merge()
+    .setValue("📊  VISUALISASI & GRAFIK")
+    .setBackground("#37474f")
+    .setFontColor("#ffffff")
+    .setFontWeight("bold")
+    .setFontSize(12)
+    .setHorizontalAlignment("center")
+    .setVerticalAlignment("middle");
+  dash.setRowHeight(14, 35);
+
+  // ============================================================
+  // GRAFIK 1: PIE DONUT — Pengeluaran per Kategori
+  //   → row 15, col A
+  // ============================================================
+  Utilities.sleep(1000);
 
   const pieChart = dash.newChart()
     .setChartType(Charts.ChartType.PIE)
     .addRange(cdSheet.getRange("A1:B15"))
-    .setPosition(13, 1, 0, 0)  // row 13, col 1
+    .setPosition(15, 1, 10, 5)
     .setOption("title", "🥧 Pengeluaran per Kategori")
     .setOption("titleTextStyle", { fontSize: 13, bold: true, color: "#202124" })
     .setOption("pieHole", 0.4)  // donut chart
@@ -289,63 +305,62 @@ function setupDashboard() {
   dash.insertChart(pieChart);
 
   // ============================================================
-  // GRAFIK 2: BAR/COLUMN — Pengeluaran vs Pemasukan per Bulan
+  // GRAFIK 2: COLUMN — Pengeluaran vs Pemasukan per Bulan
+  //   → row 15, col D (kolom 4)
   // ============================================================
   const barChart = dash.newChart()
     .setChartType(Charts.ChartType.COLUMN)
-    .addRange(cdSheet.getRange("D1:F1"))   // header
-    .addRange(cdSheet.getRange("D2:F15"))  // data
-    .setPosition(13, 4, 0, 0)  // row 13, col 4
-    .setOption("title", "📊 Pengeluaran vs Pemasukan per Bulan")
-    .setOption("titleTextStyle", { fontSize: 13, bold: true, color: "#202124" })
-    .setOption("legend", { position: "bottom" })
-    .setOption("backgroundColor", "#f8f9fa")
-    .setOption("hAxis", { title: "Bulan", textStyle: { fontSize: 9 }, slantedText: true, slantedTextAngle: 45 })
-    .setOption("vAxis", { title: "Rupiah (Rp)", format: "Rp#,##0", minValue: 0 })
+    .addRange(cdSheet.getRange("D1:F1"))
+    .addRange(cdSheet.getRange("D2:F15"))
+    .setPosition(15, 4, 10, 5)
+    .setOption("title", "Pengeluaran vs Pemasukan per Bulan")
+    .setOption("titleTextStyle", { fontSize: 12, bold: true, color: "#202124" })
+    .setOption("legend", { position: "bottom", textStyle: { fontSize: 9 } })
+    .setOption("backgroundColor", "#ffffff")
+    .setOption("hAxis", { textStyle: { fontSize: 8 }, slantedText: true, slantedTextAngle: 45 })
+    .setOption("vAxis", { format: "short", minValue: 0, textStyle: { fontSize: 8 } })
     .setOption("colors", ["#ea4335", "#34a853"])
-    .setOption("bar", { groupWidth: "65%" })
-    .setOption("chartArea", { width: "75%", height: "70%" })
-    .setOption("width", 480)
-    .setOption("height", 280)
+    .setOption("bar", { groupWidth: "60%" })
+    .setOption("chartArea", { left: 55, top: 40, width: "72%", height: "65%" })
+    .setOption("width", 420)
+    .setOption("height", 260)
     .build();
-
   dash.insertChart(barChart);
 
   // ============================================================
   // GRAFIK 3: LINE — Tren Pengeluaran Bulanan
+  //   → row 15, col H (kolom 8)
   // ============================================================
   const lineChart = dash.newChart()
     .setChartType(Charts.ChartType.LINE)
     .addRange(cdSheet.getRange("D1:E15"))
-    .setPosition(13, 8, 0, 0)  // row 13, col 8
-    .setOption("title", "📈 Tren Pengeluaran Bulanan")
-    .setOption("titleTextStyle", { fontSize: 13, bold: true, color: "#202124" })
+    .setPosition(15, 8, 10, 5)
+    .setOption("title", "Tren Pengeluaran Bulanan")
+    .setOption("titleTextStyle", { fontSize: 12, bold: true, color: "#202124" })
     .setOption("legend", { position: "none" })
-    .setOption("backgroundColor", "#f8f9fa")
-    .setOption("hAxis", { textStyle: { fontSize: 9 }, slantedText: true, slantedTextAngle: 45 })
-    .setOption("vAxis", { format: "Rp#,##0", minValue: 0 })
+    .setOption("backgroundColor", "#ffffff")
+    .setOption("hAxis", { textStyle: { fontSize: 8 }, slantedText: true, slantedTextAngle: 45 })
+    .setOption("vAxis", { format: "short", minValue: 0, textStyle: { fontSize: 8 } })
     .setOption("colors", ["#ea4335"])
     .setOption("lineWidth", 3)
     .setOption("pointSize", 6)
     .setOption("curveType", "function")
-    .setOption("chartArea", { width: "75%", height: "70%" })
-    .setOption("width", 420)
-    .setOption("height", 280)
+    .setOption("chartArea", { left: 45, top: 40, width: "75%", height: "65%" })
+    .setOption("width", 380)
+    .setOption("height", 260)
     .build();
-
   dash.insertChart(lineChart);
 
   // ============================================================
-  // FOOTER
+  // FOOTER — row 28 (setelah grafik ~260px ≈ 13 baris dari row 15)
   // ============================================================
-  dash.getRange("A25:I25").merge()
-    .setValue("⚡ Powered by KyFinance BOT — @KyFinance_BOT | Data otomatis dari Telegram | Last setup: " + new Date().toLocaleString("id-ID"))
+  dash.getRange("A28:I28").merge()
+    .setValue("⚡ Powered by KyFinance BOT — @KyFinance_BOT | Data otomatis dari Telegram | " + new Date().toLocaleString("id-ID"))
     .setBackground("#303134")
     .setFontColor("#9aa0a6")
     .setFontSize(9)
     .setHorizontalAlignment("center");
 
-  // Auto resize
   dash.autoResizeColumns(1, 2);
   dash.autoResizeColumns(4, 3);
   dash.autoResizeColumns(8, 2);
@@ -368,23 +383,20 @@ function refreshCharts() {
     return;
   }
 
-  // Hapus semua chart lama lalu buat ulang 3 chart
   const charts = dash.getCharts();
   charts.forEach(c => dash.removeChart(c));
-
-  // Re-create charts (sama seperti di setupDashboard)
   Utilities.sleep(500);
 
   const pieChart = dash.newChart()
     .setChartType(Charts.ChartType.PIE)
     .addRange(cdSheet.getRange("A1:B15"))
-    .setPosition(13, 1, 0, 0)
-    .setOption("title", "🥧 Pengeluaran per Kategori")
+    .setPosition(15, 1, 10, 5)
+    .setOption("title", "Pengeluaran per Kategori")
     .setOption("pieHole", 0.4)
-    .setOption("legend", { position: "right", textStyle: { fontSize: 10 } })
-    .setOption("backgroundColor", "#f8f9fa")
+    .setOption("legend", { position: "right", textStyle: { fontSize: 9 } })
+    .setOption("backgroundColor", "#ffffff")
     .setOption("colors", ["#4285f4","#ea4335","#fbbc04","#34a853","#ff6d00","#46bdc6","#7b1fa2","#0d47a1","#e91e63","#1b5e20"])
-    .setOption("width", 420).setOption("height", 280)
+    .setOption("width", 380).setOption("height", 260)
     .build();
   dash.insertChart(pieChart);
 
@@ -392,25 +404,25 @@ function refreshCharts() {
     .setChartType(Charts.ChartType.COLUMN)
     .addRange(cdSheet.getRange("D1:F1"))
     .addRange(cdSheet.getRange("D2:F15"))
-    .setPosition(13, 4, 0, 0)
-    .setOption("title", "📊 Pengeluaran vs Pemasukan per Bulan")
+    .setPosition(15, 4, 10, 5)
+    .setOption("title", "Pengeluaran vs Pemasukan per Bulan")
     .setOption("colors", ["#ea4335","#34a853"])
-    .setOption("backgroundColor", "#f8f9fa")
+    .setOption("backgroundColor", "#ffffff")
     .setOption("hAxis", { slantedText: true, slantedTextAngle: 45 })
-    .setOption("vAxis", { format: "Rp#,##0" })
-    .setOption("width", 480).setOption("height", 280)
+    .setOption("vAxis", { format: "short" })
+    .setOption("width", 420).setOption("height", 260)
     .build();
   dash.insertChart(barChart);
 
   const lineChart = dash.newChart()
     .setChartType(Charts.ChartType.LINE)
     .addRange(cdSheet.getRange("D1:E15"))
-    .setPosition(13, 8, 0, 0)
-    .setOption("title", "📈 Tren Pengeluaran Bulanan")
+    .setPosition(15, 8, 10, 5)
+    .setOption("title", "Tren Pengeluaran Bulanan")
     .setOption("colors", ["#ea4335"])
-    .setOption("backgroundColor", "#f8f9fa")
+    .setOption("backgroundColor", "#ffffff")
     .setOption("lineWidth", 3).setOption("pointSize", 6).setOption("curveType", "function")
-    .setOption("width", 420).setOption("height", 280)
+    .setOption("width", 380).setOption("height", 260)
     .build();
   dash.insertChart(lineChart);
 
